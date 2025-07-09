@@ -1,0 +1,21 @@
+CREATE TABLE public.restaurants (
+  id bigint NOT NULL,
+  name text,
+  cuisine text,
+  price_range text,
+  distance text,
+  image text,
+  description text,
+  address text,
+  phone text,
+  website text,
+  opening_hours jsonb,
+  location jsonb,
+  coordinates jsonb,
+  discount text,
+  tables jsonb,
+  admin_id text,
+  meniuPdf text,
+  status character varying,
+  CONSTRAINT restaurants_pkey PRIMARY KEY (id)
+);

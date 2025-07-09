@@ -1,0 +1,80 @@
+CREATE TABLE public.favorites (
+  id uuid NOT NULL DEFAULT gen_random_uuid(),
+  user_id uuid,
+  restaurant_id bigint,
+  created_at timestamp with time zone NOT NULL DEFAULT timezone('utc'::text, now()),
+  CONSTRAINT favorites_pkey PRIMARY KEY (id),
+  CONSTRAINT favorites_restaurant_id_fkey FOREIGN KEY (restaurant_id) REFERENCES public.restaurants(id),
+  CONSTRAINT favorites_user_id_fkey FOREIGN KEY (user_id) REFERENCES auth.users(id)
+);
+CREATE TABLE public.reservations (
+  id uuid NOT NULL DEFAULT uuid_generate_v4(),
+  user_id uuid,
+  restaurant_id bigint,
+  table_id text,
+  reservation_time timestamp with time zone NOT NULL,
+  guests integer NOT NULL,
+  status text DEFAULT 'pending'::text,
+  created_at timestamp with time zone DEFAULT timezone('utc'::text, now()),
+  notes text,
+  special_requests text,
+  table_location text CHECK (table_location = ANY (ARRAY['interior'::text, 'exterior'::text])),
+  preferred_location text,
+  CONSTRAINT reservations_pkey PRIMARY KEY (id),
+  CONSTRAINT reservations_user_id_fkey FOREIGN KEY (user_id) REFERENCES auth.users(id),
+  CONSTRAINT reservations_restaurant_id_fkey FOREIGN KEY (restaurant_id) REFERENCES public.restaurants(id)
+);
+CREATE TABLE public.restaurants (
+  id bigint NOT NULL,
+  name text,
+  cuisine text,
+  price_range text,
+  distance text,
+  image text,
+  description text,
+  address text,
+  phone text,
+  website text,
+  opening_hours jsonb,
+  location jsonb,
+  coordinates jsonb,
+  discount text,
+  tables jsonb,
+  admin_id text,
+  meniuPdf text,
+  status character varying,
+  CONSTRAINT restaurants_pkey PRIMARY KEY (id)
+);
+CREATE TABLE public.reviews (
+  id uuid NOT NULL DEFAULT uuid_generate_v4(),
+  user_id uuid,
+  restaurant_id bigint NOT NULL,
+  reservation_id uuid,
+  is_anonymous boolean NOT NULL DEFAULT false,
+  general_rating integer NOT NULL CHECK (general_rating >= 1 AND general_rating <= 5),
+  service_rating integer NOT NULL CHECK (service_rating >= 1 AND service_rating <= 5),
+  food_rating integer CHECK (food_rating >= 1 AND food_rating <= 5),
+  ambiance_rating integer CHECK (ambiance_rating >= 1 AND ambiance_rating <= 5),
+  text text,
+  created_at timestamp with time zone DEFAULT now(),
+  CONSTRAINT reviews_pkey PRIMARY KEY (id),
+  CONSTRAINT reviews_reservation_id_fkey FOREIGN KEY (reservation_id) REFERENCES public.reservations(id),
+  CONSTRAINT reviews_user_id_fkey FOREIGN KEY (user_id) REFERENCES auth.users(id),
+  CONSTRAINT reviews_restaurant_id_fkey FOREIGN KEY (restaurant_id) REFERENCES public.restaurants(id)
+);
+CREATE TABLE public.table_availability_schedules (
+  id uuid NOT NULL DEFAULT uuid_generate_v4(),
+  restaurant_id bigint NOT NULL,
+  table_id text NOT NULL,
+  table_location text NOT NULL,
+  reservation_id uuid NOT NULL,
+  reservation_time timestamp with time zone NOT NULL,
+  occupied_from timestamp with time zone NOT NULL,
+  available_after timestamp with time zone NOT NULL,
+  is_active boolean NOT NULL DEFAULT true,
+  created_at timestamp with time zone DEFAULT now(),
+  updated_at timestamp with time zone DEFAULT now(),
+  CONSTRAINT table_availability_schedules_pkey PRIMARY KEY (id),
+  CONSTRAINT table_availability_schedules_restaurant_id_fkey FOREIGN KEY (restaurant_id) REFERENCES public.restaurants(id),
+  CONSTRAINT table_availability_schedules_reservation_id_fkey FOREIGN KEY (reservation_id) REFERENCES public.reservations(id)
+);
